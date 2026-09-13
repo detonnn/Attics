@@ -1,6 +1,20 @@
 import './style.css'
+import { headerTemplate, footerTemplate } from './layout'
+import { view_home, view_catalog, view_product, view_cart, view_contact } from './views'
 
-// ponytail: CDN tailwind covers custom colors, local @tailwindcss/vite kept for HMR only
+// ponytail: all HTML now via TS — index.html is just shell, no framework
+const app = document.getElementById('app')!
+app.innerHTML = `
+  ${headerTemplate}
+  <main class="w-full pt-14 bg-surface-container-lowest min-h-screen">
+    ${view_home}
+    ${view_catalog}
+    ${view_product}
+    ${view_cart}
+    ${view_contact}
+  </main>
+  ${footerTemplate}
+`
 
 let currentId = 'view-home'
 let animating = false
@@ -45,7 +59,6 @@ function showView(id: string) {
     current.classList.remove('flex', 'view-leave')
     next.classList.remove('hidden')
     next.classList.add('flex', 'view-enter')
-    // force reflow for stagger
     void next.offsetWidth
     next.addEventListener('animationend', () => {
       next.classList.remove('view-enter')
@@ -56,24 +69,27 @@ function showView(id: string) {
   }, { once: true })
 }
 
-// nav router
-document.querySelectorAll<HTMLElement>('[data-path]').forEach(a => {
-  a.addEventListener('click', e => {
-    const path = a.dataset.path
-    if (!path) return
-    e.preventDefault()
-    const map: Record<string, string> = {
-      home: 'view-home',
-      catalog: 'view-catalog',
-      product: 'view-product',
-      contact: 'view-contact',
-      cart: 'view-cart',
-      'dm-instagram': 'view-contact',
-    }
-    const target = map[path]
-    if (target) showView(target)
+// nav router — delegated after TS injection
+function bindNav(handler: (id: string) => void) {
+  document.querySelectorAll<HTMLElement>('[data-path]').forEach(a => {
+    a.addEventListener('click', e => {
+      const path = a.dataset.path
+      if (!path) return
+      e.preventDefault()
+      const map: Record<string, string> = {
+        home: 'view-home',
+        catalog: 'view-catalog',
+        product: 'view-product',
+        contact: 'view-contact',
+        cart: 'view-cart',
+        'dm-instagram': 'view-contact',
+      }
+      const target = map[path]
+      if (target) handler(target)
+    })
   })
-})
+}
+bindNav(showView)
 
 // catalog filter
 document.querySelectorAll<HTMLButtonElement>('.filter-btn').forEach(btn => {
@@ -244,9 +260,8 @@ function showViewWrapped(id: string) {
     })
   }, 260)
 }
-// patch nav to use wrapped version
+// rebind nav to wrapped (remove old, add wrapped)
 document.querySelectorAll<HTMLElement>('[data-path]').forEach(a => {
-  // already bound, re-bind to wrapped — remove old by cloning
   const clone = a.cloneNode(true) as HTMLElement
   a.replaceWith(clone)
 })
@@ -266,7 +281,6 @@ document.addEventListener('error', (e) => {
   const t = e.target as HTMLImageElement
   if (t.tagName === 'IMG' && !t.dataset.fallback) {
     t.dataset.fallback = '1'
-    // keep avatar as avatar, others as tee
     const isAvatar = t.alt === 'Profile'
     t.src = isAvatar
       ? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80&auto=format'
