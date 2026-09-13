@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@layer base {
+  html, body { margin: 0; padding: 0; }
+  body { overscroll-behavior: none; }
+  main > :first-child { margin-top: 0 !important; }
+  main > :last-child { margin-bottom: 0 !important; }
+}
+::-webkit-scrollbar { display: none; }
+
+/* ponytail: view in/out — 2 keyframes only, upgrade to FLIP if layout thrash */
+@keyframes viewIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes viewOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-8px); }
+}
+[data-view].view-enter { animation: viewIn 320ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+[data-view].view-leave { animation: viewOut 220ms cubic-bezier(0.4, 0, 1, 1) both; }
+
+/* reveal on approach — once, when user scrolls to element */
+.reveal { opacity: 0; transform: translateY(14px); transition: opacity 420ms cubic-bezier(0.16,1,0.3,1), transform 420ms cubic-bezier(0.16,1,0.3,1); }
+.reveal.is-visible { opacity: 1; transform: translateY(0); }
+.reveal.is-visible.catalog-item:nth-child(2) { transition-delay: 60ms; }
+.reveal.is-visible.catalog-item:nth-child(3) { transition-delay: 120ms; }
+.reveal.is-visible.catalog-item:nth-child(4) { transition-delay: 180ms; }
+
+/* shutter hero — vanilla port of hero-shutter-text.tsx, no framer needed */
+#shutter-hero.reveal { opacity: 0; transform: none; }
+#shutter-hero.reveal.is-visible { opacity: 1; }
+.shutter-grid {
+  background-image: linear-gradient(to right, #888 1px, transparent 1px), linear-gradient(to bottom, #888 1px, transparent 1px);
+  background-size: clamp(20px, 5vw, 60px) clamp(20px, 5vw, 60px);
+}
+.shutter-line { display: flex; flex-wrap: wrap; align-items: center; }
+.shutter-char { position: relative; display: inline-block; padding: 0 0.08vw; overflow: hidden; }
+.shutter-main {
+  font-family: Chivo, system-ui, sans-serif;
+  font-size: clamp(32px, 7vw, 72px);
+  line-height: 0.9;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: #fff;
+  display: inline-block;
+  opacity: 0; filter: blur(10px);
+  animation: shutterReveal 0.8s forwards;
+}
+.shutter-slice {
+  position: absolute; inset: 0;
+  font-family: Chivo, system-ui, sans-serif;
+  font-size: clamp(32px, 7vw, 72px);
+  line-height: 0.9;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  pointer-events: none;
+  opacity: 0;
+}
+.shutter-slice.top { color: #6366f1; clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%); animation: sliceR 0.7s cubic-bezier(0.4,0,0.2,1) both; }
+.shutter-slice.mid { color: #e5e2e1; clip-path: polygon(0 35%, 100% 35%, 100% 65%, 0 65%); animation: sliceL 0.7s cubic-bezier(0.4,0,0.2,1) both; }
+.shutter-slice.bot { color: #6366f1; clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%); animation: sliceR 0.7s cubic-bezier(0.4,0,0.2,1) both; }
+@keyframes shutterReveal { to { opacity: 1; filter: blur(0); } }
+@keyframes sliceR { 0% { transform: translateX(-100%); opacity: 0; } 40% { opacity:1; } 100% { transform: translateX(100%); opacity:0; } }
+@keyframes sliceL { 0% { transform: translateX(100%); opacity: 0; } 40% { opacity:1; } 100% { transform: translateX(-100%); opacity:0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-view].view-enter, [data-view].view-leave,
+  [data-view].view-enter > section,
+  [data-view].view-enter .catalog-item { animation: none !important; }
+  .shutter-main, .shutter-slice { animation: none !important; opacity:1; filter:none; transform:none; }
+}
