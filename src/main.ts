@@ -155,27 +155,7 @@ function showView(id: string) {
   }, { once: true })
 }
 
-function bindNav(handler: (id: string) => void) {
-  document.querySelectorAll<HTMLElement>('[data-path]').forEach(a => {
-    a.addEventListener('click', e => {
-      const path = a.dataset.path
-      if (!path) return
-      e.preventDefault()
-      const map: Record<string, string> = {
-        home: 'view-home',
-        catalog: 'view-catalog',
-        contact: 'view-contact',
-        cart: 'view-cart',
-        'dm-instagram': 'view-contact',
-        'cart-remove': 'view-cart',
-        tracking: 'view-tracking',
-      }
-      const target = map[path]
-      if (target) handler(target)
-    })
-  })
-}
-bindNav(showView)
+
 
 // --- HOME: filter tabs ---
 document.querySelectorAll<HTMLButtonElement>('.filter-tab').forEach(btn => {
@@ -193,13 +173,6 @@ document.querySelectorAll<HTMLButtonElement>('.filter-tab').forEach(btn => {
     })
   })
 })
-// legacy home filter kept for compat
-document.querySelectorAll<HTMLButtonElement>('#filter-tabs-home .filter-tab').forEach(btn=>{
-  btn.addEventListener('click',()=> {
-    // already handled above
-  })
-})
-
 // --- HOME: typing hero ONE PIECE. ONE BUYER. NEVER REPRINTED. ---
 const typingTextEl = document.getElementById('typing-text') as HTMLElement | null
 if (typingTextEl) {
@@ -244,19 +217,6 @@ const cursorTracker = document.getElementById('cursor-tracker')
 if (cursorTracker) {
   window.addEventListener('mousemove', e => {
     cursorTracker.textContent = `[X: ${e.clientX} Y: ${e.clientY}]`
-  })
-}
-
-// --- HOME: audio toggle ---
-const audioToggle = document.getElementById('audio-toggle')
-const audioLabel = document.getElementById('audio-label')
-let soundActive = true
-if (audioToggle && audioLabel) {
-  audioToggle.addEventListener('click', () => {
-    soundActive = !soundActive
-    audioLabel.textContent = soundActive ? 'FX: ON' : 'FX: MUTE'
-    audioToggle.classList.toggle('text-primary', soundActive)
-    audioToggle.classList.toggle('text-outline', !soundActive)
   })
 }
 
@@ -347,21 +307,17 @@ let bagCount = 1
 let basePrice = 1850000
 const bagText = document.getElementById('header-bag-text')
 const bagBtn = document.getElementById('header-bag-btn') || bagText?.closest('a')
-const catalogMap: Record<string, {title:string, price:number, img:string, spec:string, size:string, sku:string}> = {
-  "DISASTER DOUBLE SLEEVE": {title:"DISASTER // DOUBLE-LAYER L/S", price:1850000, img:"/catalog/disaster.png", spec:"SPEC: HEAVY COTTON 330 GSM", size:"SIZE: OVERSIZED L", sku:"DOMESTIC SKU: ATTC-JKT-24-0091"},
-  "DISASTER // DOUBLE-LAYER L/S": {title:"DISASTER // DOUBLE-LAYER L/S", price:1850000, img:"/catalog/disaster.png", spec:"SPEC: HEAVY COTTON 330 GSM", size:"SIZE: OVERSIZED L", sku:"DOMESTIC SKU: ATTC-JKT-24-0091"},
-  "DESIRE EYE HEAVY TEE": {title:"DESIRE EYE HEAVY TEE", price:1150000, img:"/catalog/desire.png", spec:"SPEC: 280GSM COMBED COTTON", size:"SIZE: BOXY M", sku:"DOMESTIC SKU: ATTC-JKT-24-0092"},
-  "DESIRE EYE TEE": {title:"DESIRE EYE HEAVY TEE", price:1150000, img:"/catalog/desire.png", spec:"SPEC: 280GSM COMBED COTTON", size:"SIZE: BOXY M", sku:"DOMESTIC SKU: ATTC-JKT-24-0092"},
-  "CAPITALIST CASUALTIES TEE": {title:"CAPITALIST CASUALTIES TEE", price:1250000, img:"/catalog/capitalist.png", spec:"SPEC: 310GSM ENZYME WASH", size:"SIZE: BOXY XL", sku:"DOMESTIC SKU: ATTC-JKT-24-0093"},
+const CATALOG: Record<string, {title:string, price:number, priceUsd:string, category:string, silhouette:string, basecolor:string, fabrication:string, print:string, tagsize:string, img:string, specNo:string, catalogNo:string, spec:string, size:string, sku:string}> = {
+  "DISASTER DOUBLE SLEEVE": {title:"DISASTER // DOUBLE-LAYER L/S", price:1850000, priceUsd:"/ $120 USD", category:"CATEGORY // HEAVY CUT & SEW", silhouette:"OVERSIZED 90S BOXY RAGLAN", basecolor:"ACID CHARCOAL / ASH CONTRAST SLEEVE", fabrication:"100% COMBED HEAVY COTTON 480 GSM", print:"SCREEN HAND-PULLED WITH CRACK FINISH", tagsize:"TAGGED L (PIT: 66CM // LENGTH: 74CM)", img:"/catalog/disaster.png", specNo:"SPECIMEN #001", catalogNo:"CATALOG NO. 001 OF 004", spec:"SPEC: HEAVY COTTON 330 GSM", size:"SIZE: OVERSIZED L", sku:"DOMESTIC SKU: ATTC-JKT-24-0091"},
+  "DESIRE EYE HEAVY TEE": {title:"DESIRE EYE HEAVY TEE", price:1150000, priceUsd:"/ $75 USD", category:"CATEGORY // BOXY SHORT SLEEVE", silhouette:"BOXY OVERSIZED TEE", basecolor:"OPTIC WHITE / BLACK PRINT", fabrication:"280GSM COMBED COTTON SLUB", print:"SCREEN HIGH-DENSITY + CURSIVE MANIFEST", tagsize:"TAGGED M (PIT: 60CM // LENGTH: 68CM)", img:"/catalog/desire.png", specNo:"SPECIMEN #002", catalogNo:"CATALOG NO. 002 OF 004", spec:"SPEC: 280GSM COMBED COTTON", size:"SIZE: BOXY M", sku:"DOMESTIC SKU: ATTC-JKT-24-0092"},
+  "CAPITALIST CASUALTIES TEE": {title:"CAPITALIST CASUALTIES TEE", price:1250000, priceUsd:"/ $80 USD", category:"CATEGORY // GRAPHIC HEAVYWEIGHT", silhouette:"BOXY HEAVYWEIGHT TEE", basecolor:"OPTIC WHITE / DISTRESSED PRINT", fabrication:"300GSM RAW COTTON", print:"SCREEN PUNK ICONOGRAPHY + BALACLAVA", tagsize:"TAGGED XL (PIT: 68CM // LENGTH: 76CM)", img:"/catalog/capitalist.png", specNo:"SPECIMEN #003", catalogNo:"CATALOG NO. 003 OF 004", spec:"SPEC: 310GSM ENZYME WASH", size:"SIZE: BOXY XL", sku:"DOMESTIC SKU: ATTC-JKT-24-0093"},
 }
 function updateCartFromSpecimen(spec:string){
   const key = spec.trim().toUpperCase()
-  // try exact then normalized
-  let data = catalogMap[spec] || catalogMap[key] || catalogMap[spec.toUpperCase()]
+  let data = (CATALOG as any)[spec] || (CATALOG as any)[key] || (CATALOG as any)[spec.toUpperCase()]
   if(!data){
-    // fallback: find by includes
-    const found = Object.entries(catalogMap).find(([k])=> key.includes(k) || k.includes(key))
-    if(found) data = found[1]
+    const found = Object.entries(CATALOG).find(([k])=> key.includes(k) || k.includes(key))
+    if(found) data = found[1] as any
   }
   if(!data) return
   basePrice = data.price
@@ -455,13 +411,13 @@ document.getElementById('sort-select')?.addEventListener('change', e => {
 })
 
 // --- CATALOG: promote secondary to hero ---
-const heroData: Record<string, {title:string, price:number, priceUsd:string, category:string, silhouette:string, basecolor:string, fabrication:string, print:string, tagsize:string, img:string, specNo:string, catalogNo:string, status:string}> = {
-  "DISASTER DOUBLE SLEEVE": {title:"DISASTER DOUBLE SLEEVE", price:1850000, priceUsd:"/ $120 USD", category:"CATEGORY // HEAVY CUT & SEW", silhouette:"OVERSIZED 90S BOXY RAGLAN", basecolor:"ACID CHARCOAL / ASH CONTRAST SLEEVE", fabrication:"100% COMBED HEAVY COTTON 480 GSM", print:"SCREEN HAND-PULLED WITH CRACK FINISH", tagsize:"TAGGED L (PIT: 66CM // LENGTH: 74CM)", img:"/catalog/disaster.png", specNo:"SPECIMEN #001", catalogNo:"CATALOG NO. 001 OF 004", status:"IN STOCK [1 AVAILABLE]"},
-  "DESIRE EYE HEAVY TEE": {title:"DESIRE EYE HEAVY TEE", price:1150000, priceUsd:"/ $75 USD", category:"CATEGORY // BOXY SHORT SLEEVE", silhouette:"BOXY OVERSIZED TEE", basecolor:"OPTIC WHITE / BLACK PRINT", fabrication:"280GSM COMBED COTTON SLUB", print:"SCREEN HIGH-DENSITY + CURSIVE MANIFEST", tagsize:"TAGGED M (PIT: 60CM // LENGTH: 68CM)", img:"/catalog/desire.png", specNo:"SPECIMEN #002", catalogNo:"CATALOG NO. 002 OF 004", status:"IN STOCK [1 AVAILABLE]"},
-  "CAPITALIST CASUALTIES TEE": {title:"CAPITALIST CASUALTIES TEE", price:1250000, priceUsd:"/ $80 USD", category:"CATEGORY // GRAPHIC HEAVYWEIGHT", silhouette:"BOXY HEAVYWEIGHT TEE", basecolor:"OPTIC WHITE / DISTRESSED PRINT", fabrication:"300GSM RAW COTTON", print:"SCREEN PUNK ICONOGRAPHY + BALACLAVA", tagsize:"TAGGED XL (PIT: 68CM // LENGTH: 76CM)", img:"/catalog/capitalist.png", specNo:"SPECIMEN #003", catalogNo:"CATALOG NO. 003 OF 004", status:"IN STOCK [1 AVAILABLE]"},
-}
 function promoteToHero(spec:string){
-  const data = heroData[spec] || heroData[spec.toUpperCase()]
+  let data = (CATALOG as any)[spec] || (CATALOG as any)[spec.trim().toUpperCase()] || (CATALOG as any)[spec.toUpperCase()]
+  if(!data){
+    const k = spec.trim().toUpperCase()
+    const found = Object.entries(CATALOG).find(([kk])=> k.includes(kk) || kk.includes(k))
+    if(found) data = found[1] as any
+  }
   if(!data) return
   const img = document.getElementById('hero-specimen-img') as HTMLImageElement|null
   const title = document.getElementById('hero-title')
@@ -561,33 +517,33 @@ if (mouseCoords) {
 }
 
 // --- CART: courier selector ---
-document.querySelectorAll<HTMLInputElement>('input[name="courier"]').forEach(input => {
-  input.addEventListener('change', e => {
-    const el = e.target as HTMLInputElement
-    const cost = parseInt(el.value, 10)
-    const label = el.dataset.label || 'JNE YES'
-    const shipEl = document.getElementById('shipping-cost-display')
-    const totalEl = document.getElementById('total-cost-display')
-    const methodEl = document.getElementById('shipping-method-name')
-    const modalTotal = document.getElementById('modal-total-display')
-    const modalResi = document.getElementById('modal-resi-display')
-    if (shipEl) shipEl.textContent = 'RP ' + cost.toLocaleString('id-ID')
-    if (totalEl) totalEl.textContent = 'RP ' + (basePrice + cost).toLocaleString('id-ID')
-    if (methodEl) methodEl.textContent = `ONGKOS KIRIM (${label})`
-    if (modalTotal) modalTotal.textContent = 'RP ' + (basePrice + cost).toLocaleString('id-ID')
-    if (modalResi) modalResi.textContent = `${label}: ATT-IDN-8829104-JKT`
-    document.querySelectorAll<HTMLElement>('.courier-card').forEach(c => {
-      c.className = 'courier-card flex flex-col p-space-sm bg-surface-container text-primary hover:bg-surface-bright cursor-pointer border border-outline-variant/40 select-none btn-spring'
-    })
-    input.closest('label')!.className = 'courier-card flex flex-col p-space-sm bg-primary text-on-primary cursor-pointer border border-primary shadow-lg ring-1 ring-white/20 select-none btn-spring'
+function selectCourier(input: HTMLInputElement){
+  const cost = parseInt(input.value, 10)
+  const label = input.dataset.label || 'JNE YES'
+  const shipEl = document.getElementById('shipping-cost-display')
+  const totalEl = document.getElementById('total-cost-display')
+  const methodEl = document.getElementById('shipping-method-name')
+  const modalTotal = document.getElementById('modal-total-display')
+  const modalResi = document.getElementById('modal-resi-display')
+  if (shipEl) shipEl.textContent = 'RP ' + cost.toLocaleString('id-ID')
+  if (totalEl) totalEl.textContent = 'RP ' + (basePrice + cost).toLocaleString('id-ID')
+  if (methodEl) methodEl.textContent = `ONGKOS KIRIM (${label})`
+  if (modalTotal) modalTotal.textContent = 'RP ' + (basePrice + cost).toLocaleString('id-ID')
+  if (modalResi) modalResi.textContent = `${label}: ATT-IDN-8829104-JKT`
+  document.querySelectorAll<HTMLElement>('.courier-card').forEach(c => {
+    c.className = 'courier-card flex flex-col p-space-sm bg-surface-container text-primary hover:bg-surface-bright cursor-pointer border border-outline-variant/40 select-none btn-spring'
   })
+  input.closest('label')!.className = 'courier-card flex flex-col p-space-sm bg-primary text-on-primary cursor-pointer border border-primary shadow-lg ring-1 ring-white/20 select-none btn-spring'
+}
+document.getElementById('courier-grid')?.addEventListener('click', e=>{
+  const card = (e.target as HTMLElement).closest<HTMLElement>('.courier-card')
+  if(!card) return
+  const inp = card.querySelector<HTMLInputElement>('input[type="radio"]')
+  if(inp){ inp.checked=true; selectCourier(inp) }
 })
-// also click on card itself
-document.querySelectorAll<HTMLElement>('.courier-card').forEach(card=>{
-  card.addEventListener('click',()=>{
-    const inp=card.querySelector<HTMLInputElement>('input[type="radio"]')
-    if(inp){ inp.checked=true; inp.dispatchEvent(new Event('change',{bubbles:true})) }
-  })
+document.getElementById('courier-grid')?.addEventListener('change', e=>{
+  const inp = e.target as HTMLInputElement
+  if(inp.name==='courier') selectCourier(inp)
 })
 
 // --- CART: payment tabs ---
@@ -739,14 +695,14 @@ function renderTracking(step: number){
     else if(idx === step+1){ el.classList.remove('opacity-60'); }
     else { el.classList.add('opacity-60') }
   })
-  // mover position along path approx
+  // mover position along DIRECT line ATELIER->HUB->SENOPATI
   if(mover){
-    const positions = [{x:40,y:180},{x:140,y:95},{x:200,y:110},{x:280,y:85},{x:360,y:60}]
+    const positions = [{x:40,y:180},{x:120,y:150},{x:200,y:110},{x:280,y:85},{x:360,y:60}]
     const p = positions[step] || positions[1]
     mover.setAttribute('transform', `translate(${p.x}, ${p.y})`)
   }
   if(routeActive){
-    const paths = ['M 40 180 Q 120 40 60 140','M 40 180 Q 120 40 140 95','M 40 180 Q 120 40 200 110','M 40 180 Q 120 40 280 70','M 40 180 Q 120 40 360 60']
+    const paths = ['M 40 180 L 70 170','M 40 180 L 120 150','M 40 180 L 200 110','M 40 180 L 200 110 L 280 85','M 40 180 L 200 110 L 360 60']
     routeActive.setAttribute('d', paths[step])
   }
 }
@@ -759,16 +715,7 @@ document.getElementById('tracking-simulate-btn')?.addEventListener('click', ()=>
   const btn = document.getElementById('tracking-simulate-btn') as HTMLButtonElement | null
   if(btn){ btn.textContent = 'STATUS DIPERBARUI ✓'; setTimeout(()=> btn.textContent='SIMULASI: MAJUKAN STATUS →', 1200) }
 })
-// auto-advance every 8s when on tracking page (demo live)
-setInterval(()=>{
-  const view = document.getElementById('view-tracking')
-  if(view && !view.classList.contains('hidden') && trackingIdx < trackingSteps.length-1){
-    // only auto if recently paid
-    if(localStorage.getItem('attics_paid')) {
-      // slow auto
-    }
-  }
-}, 8000)
+
 
 // --- reveal on approach ---
 const revealObserver = new IntersectionObserver((entries) => {
