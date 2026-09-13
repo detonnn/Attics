@@ -70,3 +70,50 @@
   [data-view].view-enter .catalog-item { animation: none !important; }
   .shutter-main, .shutter-slice { animation: none !important; opacity:1; filter:none; transform:none; }
 }
+
+/* animated home / catalog / cart — merged from provided HTML */
+@keyframes fadeInUp { from { opacity:0; transform: translateY(24px);} to { opacity:1; transform: translateY(0);} }
+@keyframes marquee { 0% { transform: translateX(0%);} 100% { transform: translateX(-50%);} }
+@keyframes marqueeFlow { 0% { transform: translateX(0%);} 100% { transform: translateX(-50%);} }
+
+@keyframes scanline { 0% { transform: translateY(-100%);} 100% { transform: translateY(1000%);} }
+@keyframes scan-laser { 0% { top:0%; opacity:0.1;} 50% { opacity:0.8;} 100% { top:100%; opacity:0.1;} }
+@keyframes laserScan { 0% { top:0%; opacity:0;} 15% { opacity:0.85;} 85% { opacity:0.85;} 100% { top:100%; opacity:0;} }
+@keyframes qrisLaser { 0% { top:4px; opacity:0.2;} 50% { top: calc(100% - 6px); opacity:0.9;} 100% { top:4px; opacity:0.2;} }
+
+@keyframes stamp-flicker { 0%,100% { transform: rotate(-2deg) scale(1);} 50% { transform: rotate(-1.5deg) scale(1.02);} }
+.animate-fade-in-up { animation: fadeInUp 0.8s cubic-bezier(0.16,1,0.3,1) forwards; }
+.animate-marquee { display:flex; width:max-content; animation: marquee 28s linear infinite; }
+.animate-marquee:hover { animation-play-state: paused; }
+.marquee-track { display:flex; width:max-content; animation: marqueeFlow 26s linear infinite; }
+.marquee-track:hover { animation-play-state: paused; }
+.animate-enter { animation: fadeInUp 0.65s cubic-bezier(0.16,1,0.3,1) forwards; opacity:0; }
+.delay-100 { animation-delay:80ms; } .delay-200 { animation-delay:160ms; } .delay-300 { animation-delay:240ms; } .delay-400 { animation-delay:320ms; }
+
+.archived-stamp { animation: stamp-flicker 4s ease-in-out infinite; }
+.laser-line { position:absolute; left:0; right:0; height:1px; background: linear-gradient(90deg, transparent, #ffffff, transparent); box-shadow:0 0 8px rgba(255,255,255,0.9); animation: scan-laser 3s cubic-bezier(0.4,0,0.2,1) infinite; pointer-events:none; }
+.laser-scanner { position:absolute; left:0; width:100%; height:2px; background:#ffffff; box-shadow:0 0 8px 1px #ffffff,0 0 16px 2px rgba(255,255,255,0.6); pointer-events:none; opacity:0; }
+.group-hover-scan:hover .laser-scanner { animation: laserScan 1.6s ease-in-out infinite; }
+.qris-scanner { position:absolute; left:0; right:0; height:2px; background:#ffffff; box-shadow:0 0 8px 1px #ffffff; pointer-events:none; animation: qrisLaser 2.4s ease-in-out infinite; }
+.laser-scanner-beam { display:none; position:absolute; left:0; width:100%; height:2px; background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.95) 50%, transparent 100%); box-shadow:0 0 10px rgba(255,255,255,0.8),0 0 20px rgba(255,255,255,0.4); pointer-events:none; z-index:20; }
+.group-specimen:hover .laser-scanner-beam { display:block; animation: laserScan 2.4s ease-in-out infinite; }
+.scanline-overlay { background: repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 2px, transparent 4px); pointer-events:none; }
+.scanlines-overlay { background: repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 2px, transparent 4px); pointer-events:none; }
+.scanline-bar { position:absolute; top:0; left:0; right:0; height:2px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.75), transparent); opacity:0; pointer-events:none; }
+.specimen-card { transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), box-shadow 0.4s cubic-bezier(0.16,1,0.3,1), border-color 0.3s ease; will-change: transform; }
+.specimen-card:hover { transform: translateY(-6px) scale(1.012); z-index:10; box-shadow:0 16px 36px -12px rgba(0,0,0,0.8),0 0 0 1px rgba(255,255,255,0.35); }
+.specimen-card:hover .scanline-bar { opacity:1; animation: scanline 2.2s linear infinite; }
+.tilt-card { transform-style: preserve-3d; transition: transform 0.15s ease-out, border-color 0.25s ease; }
+.btn-spring { transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1), background-color 0.15s ease, color 0.15s ease; }
+.btn-spring:active { transform: scale(0.96); }
+.brutalist-btn { position:relative; overflow:hidden; transition: color 0.3s cubic-bezier(0.16,1,0.3,1), transform 0.15s ease; }
+.brutalist-btn::before { content:''; position:absolute; top:0; left:0; width:100%; height:100%; background:#ffffff; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.16,1,0.3,1); z-index:0; }
+.brutalist-btn:hover::before { transform: translateY(0); }
+.brutalist-btn > * { position:relative; z-index:1; }
+.brutalist-btn:hover { color:#0e0e0e !important; }
+.nav-link { position:relative; }
+.nav-link::after { content:''; position:absolute; bottom:-2px; left:0; width:0%; height:1px; background-color:#ffffff; transition: width 0.3s cubic-bezier(0.16,1,0.3,1); }
+.nav-link:hover::after, .nav-link.active-link::after { width:100%; }
+@keyframes blink { 0%,49% { opacity:1 } 50%,100% { opacity:0 } }
+.typing-cursor { display:inline-block; margin-left:2px; animation: blink 0.7s step-end infinite; color:#fff; }
+@media (prefers-reduced-motion: reduce) { .typing-cursor { animation: none !important; opacity:1 } }
